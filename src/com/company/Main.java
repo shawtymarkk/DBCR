@@ -43,45 +43,71 @@ public class Main extends Configs {
 
     public static int replacingCases() throws SQLException {
         int replacedCases = 0;
+        int i = 0;
+
+        String yString = "SELECT * FROM player_cases WHERE " + Const.SERVER_NAME + " = ''";
+        ResultSet yResult = yDbConnection.prepareStatement(yString).executeQuery();
+        while (yResult.next()) {
+            String updateString = "UPDATE player_cases SET " + Const.NAME + " = ?, "
+                    + Const.CASES + " = ?, "
+                    + Const.OPEN_CASES_FACTOR + " = ?, "
+                    + Const.LAST_CHANGE_OPEN + " = ?, "
+                    + Const.SERVER_NAME + " = ? WHERE " + Const.NAME + " = ?";
+            PreparedStatement prSt = yDbConnection.prepareStatement(updateString);
+            prSt.setString(1, yResult.getString(Const.NAME));
+            prSt.setString(2, yResult.getString(Const.CASES));
+            prSt.setString(3, yResult.getString(Const.OPEN_CASES_FACTOR));
+            prSt.setString(4, yResult.getString(Const.LAST_CHANGE_OPEN));
+            prSt.setString(5, "yottacraft");
+            prSt.setString(6, yResult.getString(Const.NAME));
+            prSt.executeUpdate();
+            i++;
+        }
+        System.out.println(i);
 
         String fReplaceString = "SELECT * FROM player_cases";
         ResultSet fResultSet = fDbConnection.prepareStatement(fReplaceString).executeQuery();
 
         while(fResultSet.next()) {
-            String insertString = "INSERT INTO player_cases (" + Const.NAME +", "
-                    + Const.CASES + ", "
-                    + Const.OPEN_CASES_FACTOR + ", "
-                    + Const.LAST_CHANGE_OPEN + ", "
-                    + Const.SERVER_NAME + ") VALUES (?, ?, ?, ?, ?)";
-            PreparedStatement prSt = yDbConnection.prepareStatement(insertString);
-            prSt.setString(1, fResultSet.getString(Const.NAME));
-            prSt.setString(2, fResultSet.getString(Const.CASES));
-            prSt.setString(3, fResultSet.getString(Const.OPEN_CASES_FACTOR));
-            prSt.setString(4, fResultSet.getString(Const.LAST_CHANGE_OPEN));
-            prSt.setString(5, "forestcraft");
-            prSt.executeUpdate();
-            replacedCases++;
+            String rowCheckingString = "SELECT * FROM player_cases WHERE " + Const.NAME + " = ? AND " + Const.SERVER_NAME + " = ?";
+            PreparedStatement prst = yDbConnection.prepareStatement(rowCheckingString);
+            prst.setString(1, fResultSet.getString(Const.NAME));
+            prst.setString(2, "forestcraft");
+            if(!prst.executeQuery().next()) {
+                insertCases(fResultSet, "forestcraft");
+                replacedCases++;
+            }
         }
 
         String nReplaceString = "SELECT * FROM player_cases";
         ResultSet nResultSet = nDbConnection.prepareStatement(nReplaceString).executeQuery();
 
         while(nResultSet.next()) {
-            String insertString = "INSERT INTO player_cases (" + Const.NAME +", "
-                    + Const.CASES + ", "
-                    + Const.OPEN_CASES_FACTOR + ", "
-                    + Const.LAST_CHANGE_OPEN + ", "
-                    + Const.SERVER_NAME + ") VALUES (?, ?, ?, ?, ?)";
-            PreparedStatement prSt = yDbConnection.prepareStatement(insertString);
-            prSt.setString(1, nResultSet.getString(Const.NAME));
-            prSt.setString(2, nResultSet.getString(Const.CASES));
-            prSt.setString(3, nResultSet.getString(Const.OPEN_CASES_FACTOR));
-            prSt.setString(4, nResultSet.getString(Const.LAST_CHANGE_OPEN));
-            prSt.setString(5, "nexting");
-            prSt.executeUpdate();
-            replacedCases++;
+            String rowCheckingString = "SELECT * FROM player_cases WHERE " + Const.NAME + " = ? AND " + Const.SERVER_NAME + " = ?";
+            PreparedStatement prst = yDbConnection.prepareStatement(rowCheckingString);
+            prst.setString(1, nResultSet.getString(Const.NAME));
+            prst.setString(2, "nexting");
+            if(!prst.executeQuery().next()) {
+                insertCases(nResultSet, "nexting");
+                replacedCases++;
+            }
         }
 
         return replacedCases;
+    }
+
+    public static void insertCases(ResultSet resultSet, String serverName) throws SQLException {
+        String insertString = "INSERT INTO player_cases (" + Const.NAME +", "
+                + Const.CASES + ", "
+                + Const.OPEN_CASES_FACTOR + ", "
+                + Const.LAST_CHANGE_OPEN + ", "
+                + Const.SERVER_NAME + ") VALUES (?, ?, ?, ?, ?)";
+        PreparedStatement prSt = yDbConnection.prepareStatement(insertString);
+        prSt.setString(1, resultSet.getString(Const.NAME));
+        prSt.setString(2, resultSet.getString(Const.CASES));
+        prSt.setString(3, resultSet.getString(Const.OPEN_CASES_FACTOR));
+        prSt.setString(4, resultSet.getString(Const.LAST_CHANGE_OPEN));
+        prSt.setString(5, serverName);
+        prSt.executeUpdate();
     }
 }
